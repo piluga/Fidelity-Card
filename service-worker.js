@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fidelity-app-v1';
+const CACHE_NAME = 'fidelity-app-v2';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
@@ -40,4 +40,5 @@ self.addEventListener('fetch', (event) => {
             return caches.match(event.request);
         })
     );
+
 });
