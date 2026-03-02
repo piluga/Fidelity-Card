@@ -586,3 +586,75 @@ function chiudiModaleBonus() {
     document.getElementById("bonus-modal").classList.remove("active");
 }
 
+// ==========================================
+// 9. GESTIONE SWIPE (Navigazione a scorrimento)
+// ==========================================
+let touchStartX = 0;
+let touchEndX = 0;
+let touchStartY = 0;
+let touchEndY = 0;
+
+// Definiamo l'ordine logico delle schermate (da sinistra a destra)
+const ordineSchermate = ['dashboard-screen', 'messages-screen', 'settings-screen'];
+
+// Ascoltiamo l'inizio del tocco sullo schermo
+document.addEventListener('touchstart', function(event) {
+    touchStartX = event.changedTouches[0].screenX;
+    touchStartY = event.changedTouches[0].screenY;
+}, {passive: true}); // passive: true migliora le prestazioni di scorrimento
+
+// Ascoltiamo la fine del tocco (quando il dito si stacca)
+document.addEventListener('touchend', function(event) {
+    touchEndX = event.changedTouches[0].screenX;
+    touchEndY = event.changedTouches[0].screenY;
+    gestisciSwipe();
+}, {passive: true});
+
+function gestisciSwipe() {
+    // 1. Se l'utente è nella schermata di login, disabilitiamo lo swipe
+    if (document.getElementById('login-screen').classList.contains('active')) return;
+    
+    // 2. Se c'è un modale aperto (es. conferma eliminazione, o bonus), blocchiamo lo swipe
+    if (document.querySelector('.modal.active')) return;
+
+    // Calcoliamo la distanza percorsa dal dito
+    const deltaX = touchEndX - touchStartX;
+    const deltaY = touchEndY - touchStartY;
+
+    // 3. Verifica che sia uno swipe ORIZZONTALE e non verticale (altrimenti cambierebbe pagina mentre si scorrono in basso i messaggi)
+    // Richiediamo anche uno spostamento minimo di 60 pixel per evitare swipe accidentali
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 60) {
+        
+        // Troviamo l'indice della schermata attualmente visibile
+        let indiceAttuale = -1;
+        ordineSchermate.forEach((id, index) => {
+            if (document.getElementById(id).classList.contains('active')) {
+                indiceAttuale = index;
+            }
+        });
+
+        if (indiceAttuale === -1) return; // Sicurezza
+
+        let prossimoIndice = indiceAttuale;
+
+        if (deltaX < 0) {
+            // Swipe verso SINISTRA (Il dito va da destra verso sinistra) -> Andiamo AVANTI
+            prossimoIndice = indiceAttuale + 1;
+        } else {
+            // Swipe verso DESTRA (Il dito va da sinistra verso destra) -> Andiamo INDIETRO
+            prossimoIndice = indiceAttuale - 1;
+        }
+
+        // Se il prossimo indice esiste (è tra 0 e 2)
+        if (prossimoIndice >= 0 && prossimoIndice < ordineSchermate.length) {
+            const prossimaSchermataId = ordineSchermate[prossimoIndice];
+            // Troviamo l'icona corrispondente nella barra di navigazione inferiore
+            const navItems = document.querySelectorAll('.nav-item');
+            
+            // Usiamo la funzione esistente per cambiare pagina! 
+            // Questo garantirà che il badge messaggi si azzeri correttamente e le impostazioni si carichino.
+            cambiaSchermataNav(prossimaSchermataId, navItems[prossimoIndice]);
+        }
+    }
+}
+
