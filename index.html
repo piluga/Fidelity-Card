@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Fidelity Card</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#121212">
+    <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+</head>
+<body>
+
+    <div id="login-screen" class="screen active">
+        <div class="login-container">
+            <h1>Fidelity App</h1>
+            <p>Accedi per vedere i tuoi punti</p>
+
+            <div class="input-group">
+                <label>Numero di Telefono</label>
+                <input type="tel" id="login-phone" placeholder="Es. 3391234567">
+            </div>
+
+            <div class="input-group">
+                <label>Password</label>
+                <input type="password" id="login-password" placeholder="Inserisci password">
+            </div>
+
+            <div class="input-checkbox">
+                <input type="checkbox" id="remember-me" checked>
+                <label for="remember-me">Resta collegato</label>
+            </div>
+            <p class="warning-text">Nota: Per disattivare l'accesso automatico, dovrai effettuare il Logout dalle Impostazioni.</p>
+
+            <button id="btn-login" onclick="eseguiLogin()">Accedi</button>
+            <p id="login-error" class="error-msg"></p>
+        </div>
+    </div>
+
+    <div id="dashboard-screen" class="screen">
+        <header>
+            <div class="user-header-info">
+                <img src="assets/icons/user-avatar.png" alt="User" class="user-icon" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'white\'><path d=\'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z\'/></svg>'">
+                <h2 id="user-name">Nome Cognome</h2>
+            </div>
+
+        </header>
+
+        <main>
+            <div class="card punti-card">
+                <h3>Il tuo Saldo Punti</h3>
+                <div class="punti-grandi" id="user-punti">0</div>
+                <div class="valore-euro">Bonus: <strong id="user-euro">€ 0,00</strong></div>
+            </div>
+
+            <div class="card barcode-card">
+                <p>Mostra questo codice in cassa</p>
+                <svg id="barcode"></svg>
+                <p class="numero-scheda-text" id="user-scheda">0000000000000</p>
+            </div>
+
+            <div class="card info-card">
+                <div class="info-row">
+                    <span>Ultimi Punti Caricati:</span>
+                    <strong id="user-bonus">0</strong>
+                </div>
+                <div class="info-row">
+                    <span>Ultima operazione:</span>
+                    <strong id="user-data">--/--/----</strong>
+                </div>
+            </div>
+
+            <div class="promo-banner">
+                🚀 <strong>Promo del mese:</strong> Prossimamente!
+            </div>
+        </main>
+    </div>
+
+    <div id="messages-screen" class="screen">
+        <header class="messages-header">
+            <h2>I tuoi Movimenti</h2>
+            <div class="messages-actions">
+                <button class="icon-btn-small" onclick="attivaSelezioneMessaggi()" id="btn-select-msg">Seleziona</button>
+                <button class="icon-btn-small text-danger hidden" onclick="eliminaMessaggiSelezionati()" id="btn-delete-msg">🗑️ Elimina</button>
+                <button class="icon-btn-small text-danger" onclick="chiediConfermaEliminaTutti()" id="btn-delete-all-msg" style="margin-left: 5px;">Svuota</button>
+            </div>
+        </header>
+
+        <main id="messages-container" class="messages-container">
+            <div class="empty-messages text-center hidden" id="empty-msg-state">
+                <p>Nessun messaggio presente.</p>
+            </div>
+        </main>
+    </div>
+
+    <div id="settings-screen" class="screen">
+        <header>
+            <h2>Impostazioni</h2>
+        </header>
+        <main>
+            <div class="card" style="margin-bottom: 20px;">
+                <h3>Personalizzazione Profilo</h3>
+                <div class="input-checkbox" style="margin-top: 15px;">
+                    <input type="checkbox" id="setting-hide-name">
+                    <label for="setting-hide-name">Nascondi nome utente</label>
+                </div>
+                <div class="input-checkbox">
+                    <input type="checkbox" id="setting-hide-avatar">
+                    <label for="setting-hide-avatar">Nascondi icona Avatar</label>
+                </div>
+                <div class="input-group" style="margin-top: 15px;">
+                    <label>Nome Visualizzato (Soprannome)</label>
+                    <input type="text" id="setting-custom-name" placeholder="Es. Batman">
+                </div>
+                <button onclick="salvaImpostazioniUI()">Salva Preferenze</button>
+            </div>
+            <div class="card">
+                <h3>Cambia Password</h3>
+                <div class="input-group" style="margin-top: 15px;">
+                    <input type="password" id="old-pwd" placeholder="Vecchia Password">
+                </div>
+                <div class="input-group">
+                    <input type="password" id="new-pwd" placeholder="Nuova Password">
+                </div>
+                <button onclick="cambiaPasswordImpostazioni()">Aggiorna Password</button>
+            </div>
+
+            <button class="btn-danger" onclick="eseguiLogout()" style="margin-top: 30px;">🚪 Logout</button>
+        </main>
+    </div>
+
+    <div id="password-modal" class="modal">
+        <div class="modal-content">
+            <h3>Avviso di Sicurezza 🔒</h3>
+            <p>Questa è la tua prima volta qui! Per proteggere i tuoi dati, ti chiediamo di impostare una nuova password personale.</p>
+            <div class="input-group">
+                <label>Nuova Password</label>
+                <input type="password" id="first-new-password" placeholder="Almeno 6 caratteri">
+            </div>
+            <button onclick="salvaNuovaPasswordPrimoAccesso()">Salva Password</button>
+        </div>
+    </div>
+
+    <div id="update-modal" class="modal">
+        <div class="modal-content text-center">
+            <h3>🚀 Nuovo Aggiornamento App!</h3>
+            <p>Abbiamo introdotto delle novità e migliorato le prestazioni dell'app.</p>
+            <button onclick="chiudiModaleAggiornamento()">Aggiorna!</button>
+        </div>
+    </div>
+
+    <div id="alert-modal" class="modal">
+        <div class="modal-content text-center">
+            <h3 id="alert-title">Avviso</h3>
+            <p id="alert-message">Messaggio di testo</p>
+            <button onclick="chiudiModaleAvviso()">OK</button>
+        </div>
+    </div>
+
+    <nav id="bottom-nav" class="bottom-nav hidden">
+        <div class="nav-item active" onclick="cambiaSchermataNav('dashboard-screen', this)">
+            <span class="nav-icon">🏠</span>
+            <span>Home</span>
+        </div>
+        <div class="nav-item" onclick="cambiaSchermataNav('messages-screen', this)">
+            <div style="position: relative;">
+                <span class="nav-icon">💬</span>
+                <span id="msg-badge" class="badge hidden">0</span>
+            </div>
+            <span>Messaggi</span>
+        </div>
+        <div class="nav-item" onclick="cambiaSchermataNav('settings-screen', this)">
+            <span class="nav-icon">⚙️</span>
+            <span>Impostazioni</span>
+        </div>
+    </nav>
+
+    <div id="new-messages-modal" class="modal">
+        <div class="modal-content text-center">
+            <h3 class="modal-title-info">📬 Nuovi Messaggi!</h3>
+            <p>Hai <strong id="new-messages-count" style="color: var(--primary-color); font-size: 18px;">0</strong> nuovi movimenti sulla tua Fidelity Card.</p>
+            <button onclick="vaiAMessaggiDaModale()" style="margin-top: 15px;">Vedi subito</button>
+            <button class="icon-btn-small" style="margin-top: 10px; width: 100%; border: none; color: var(--text-sec);" onclick="chiudiModaleNuoviMessaggi()">Chiudi</button>
+        </div>
+    </div>
+
+    <div id="confirm-modal" class="modal">
+        <div class="modal-content text-center">
+            <h3 class="modal-title-error">Attenzione</h3>
+            <p id="confirm-message">Sei sicuro di voler procedere?</p>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button style="background-color: #555;" onclick="chiudiModaleConferma()">Annulla</button>
+                <button class="btn-danger" id="btn-confirm-action">Conferma</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="bonus-modal" class="modal">
+        <div class="modal-content text-center celebration-bg">
+            <h2 style="font-size: 26px; color: #fff; text-shadow: 1px 1px 3px rgba(0,0,0,0.5);">🎉 TRAGUARDO RAGGIUNTO! 🎉</h2>
+            <div class="bounce-emoji" style="font-size: 60px; margin: 15px 0;">🎁</div>
+            <p style="font-size: 16px;">Hai accumulato abbastanza punti per un nuovo premio!</p>
+            <p style="margin-top: 10px;">Nuovo Bonus sbloccato: <br><strong id="bonus-modal-value" style="font-size: 30px; color: #ffeb3b; text-shadow: 1px 1px 2px #000;">€ 0,00</strong></p>
+            <p style="font-size: 12px; margin-top: 15px; color: #e0e0e0;">Mostra la card in cassa al tuo prossimo acquisto.</p>
+            <button onclick="chiudiModaleBonus()" style="margin-top: 25px; background-color: #ffeb3b; color: #111; font-weight: 900; font-size: 18px;">Fantastico!</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+
+    <script>
+        // Registrazione del Service Worker per la PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./service-worker.js')
+                    .then(reg => console.log('Service Worker registrato con successo!', reg.scope))
+                    .catch(err => console.error('Errore registrazione Service Worker:', err));
+            });
+        }
+    </script>
+</body>
+</html>
