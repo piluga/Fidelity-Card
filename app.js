@@ -346,43 +346,43 @@ async function aggiornaPasswordSuFirebase(nuovaPassword) {
 
     let modalitaSelezione = false;
 
-    function renderMessaggi() {
-        const container = document.getElementById("messages-container");
-        container.innerHTML = ""; // Pulisci
+function renderMessaggi() {
+    const container = document.getElementById("messages-container");
+    container.innerHTML = ""; // Pulisci
 
-        // I messaggi sono salvati in datiUtenteCorrente.messaggi
-        const messaggi = datiUtenteCorrente.messaggi;
+    // I messaggi sono salvati in datiUtenteCorrente.messaggi
+    const messaggi = datiUtenteCorrente.messaggi;
 
-        if (!messaggi || Object.keys(messaggi).length === 0) {
-            container.innerHTML = `<div class="empty-messages text-center"><p>Nessun messaggio presente.</p></div>`;
-            return;
-        }
+    if (!messaggi || Object.keys(messaggi).length === 0) {
+        container.innerHTML = `<div class="empty-messages text-center"><p>Nessun messaggio presente.</p></div>`;
+        return;
+    }
 
-        // Convertiamo l'oggetto in array e ordiniamo dal più recente al più vecchio
-        const msgArray = Object.keys(messaggi).map(key => ({ id: key, ...messaggi[key] }));
-        msgArray.sort((a, b) => b.timestamp - a.timestamp);
+    // Convertiamo l'oggetto in array e ordiniamo dal più recente al più vecchio
+    const msgArray = Object.keys(messaggi).map(key => ({ id: key, ...messaggi[key] }));
+    msgArray.sort((a, b) => b.timestamp - a.timestamp);
 
-        msgArray.forEach(msg => {
-            const bubble = document.createElement('div');
-            bubble.className = "msg-bubble";
-            bubble.innerHTML = `
+    msgArray.forEach(msg => {
+        const bubble = document.createElement('div');
+        bubble.className = "msg-bubble";
+        bubble.innerHTML = `
                 <input type="checkbox" class="msg-checkbox" value="${msg.id}">
                 <div class="msg-content">
                     <div class="msg-header">CHEMARIA FIDELITY</div>
-                    <div class="msg-title">Ciao, ${datiUtenteCorrente.dati_anagrafici.nome_completo}<br>Card N: ${utenteCorrenteId}</div>
+                    <div class="msg-title">Ciao, ${datiUtenteCorrente.nome || 'Utente'}<br>Card N: ${utenteCorrenteId}</div>
                     <div class="msg-divider"></div>
-                    <div class="msg-row"><span>Saldo Iniziale:</span> <span>${msg.saldo_iniziale}</span></div>
-                    <div class="msg-row"><span>Punti Caricati:</span> <span style="color: #4caf50">+${msg.punti_caricati}</span></div>
-                    <div class="msg-row"><span>Punti Scaricati:</span> <span style="color: var(--danger)">-${msg.punti_scaricati}</span></div>
-                    <div class="msg-row"><strong>Saldo Punti:</strong> <strong>${msg.saldo_punti}</strong></div>
-                    <div class="msg-row"><span>Bonus:</span> <span>€ ${msg.bonus}</span></div>
+                    <div class="msg-row"><span>Saldo Iniziale:</span> <span>${msg.saldo_iniziale || '0,00'}</span></div>
+                    <div class="msg-row"><span>Punti Caricati:</span> <span style="color: #4caf50">+${msg.punti_caricati || '0,00'}</span></div>
+                    <div class="msg-row"><span>Punti Scaricati:</span> <span style="color: var(--danger)">-${msg.punti_scaricati || '0,00'}</span></div>
+                    <div class="msg-row"><strong>Saldo Punti:</strong> <strong>${msg.saldo_punti || '0,00'}</strong></div>
+                    <div class="msg-row"><span>Bonus:</span> <span>€ ${msg.bonus || '0,00'}</span></div>
                     <div class="msg-divider"></div>
-                    <div class="msg-footer">${msg.data} • ${msg.ora}</div>
+                    <div class="msg-footer">${msg.data || '--/--/----'} • ${msg.ora || '--:--'}</div>
                 </div>
             `;
-            container.appendChild(bubble);
-        });
-    }
+        container.appendChild(bubble);
+    });
+}
 
     function attivaSelezioneMessaggi() {
         const container = document.getElementById("messages-container");
