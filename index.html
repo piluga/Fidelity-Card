@@ -83,7 +83,7 @@
             <div class="messages-actions">
                 <button class="icon-btn-small" onclick="attivaSelezioneMessaggi()" id="btn-select-msg">Seleziona</button>
                 <button class="icon-btn-small text-danger hidden" onclick="eliminaMessaggiSelezionati()" id="btn-delete-msg">🗑️ Elimina</button>
-                <button class="icon-btn-small text-danger" onclick="chiediConfermaEliminaTutti()" id="btn-delete-all-msg" style="margin-left: 5px;">Svuota</button>
+                <button class="icon-btn-small text-danger" onclick="chiediConfermaEliminaTutti()" id="btn-delete-all-msg">Svuota</button>
             </div>
         </header>
 
@@ -92,6 +92,11 @@
                 <p>Nessun messaggio presente.</p>
             </div>
         </main>
+
+        <div class="chat-input-container">
+            <input type="text" id="chat-text-input" placeholder="Scrivi al negozio..." onkeypress="if(event.key === 'Enter') inviaMessaggioChat()">
+            <button class="chat-send-btn" onclick="inviaMessaggioChat()">➤</button>
+        </div>
     </div>
 
     <div id="settings-screen" class="screen">
