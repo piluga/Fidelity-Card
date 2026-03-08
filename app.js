@@ -346,11 +346,11 @@ async function aggiornaPasswordSuFirebase(nuovaPassword) {
 
     let modalitaSelezione = false;
 
+// --- 1. SOSTITUISCI LA VECCHIA FUNZIONE ---
 function renderMessaggi() {
     const container = document.getElementById("messages-container");
     container.innerHTML = ""; // Pulisci
 
-    // I messaggi sono salvati in datiUtenteCorrente.messaggi
     const messaggi = datiUtenteCorrente.messaggi;
 
     if (!messaggi || Object.keys(messaggi).length === 0) {
@@ -358,30 +358,122 @@ function renderMessaggi() {
         return;
     }
 
-    // Convertiamo l'oggetto in array e ordiniamo dal più recente al più vecchio
     const msgArray = Object.keys(messaggi).map(key => ({ id: key, ...messaggi[key] }));
-    msgArray.sort((a, b) => b.timestamp - a.timestamp);
+
+    // Ordiniamo dal più vecchio al più recente (stile Chat)!
+    msgArray.sort((a, b) => a.timestamp - b.timestamp);
 
     msgArray.forEach(msg => {
-        const bubble = document.createElement('div');
-        bubble.className = "msg-bubble";
-        bubble.innerHTML = `
-                <input type="checkbox" class="msg-checkbox" value="${msg.id}">
-                <div class="msg-content">
-                    <div class="msg-header">CHEMARIA FIDELITY</div>
-                    <div class="msg-title">Ciao, ${datiUtenteCorrente.nome || 'Utente'}<br>Card N: ${utenteCorrenteId}</div>
-                    <div class="msg-divider"></div>
-                    <div class="msg-row"><span>Saldo Iniziale:</span> <span>${msg.saldo_iniziale || '0,00'}</span></div>
-                    <div class="msg-row"><span>Punti Caricati:</span> <span style="color: #4caf50">+${msg.punti_caricati || '0,00'}</span></div>
-                    <div class="msg-row"><span>Punti Scaricati:</span> <span style="color: var(--danger)">-${msg.punti_scaricati || '0,00'}</span></div>
-                    <div class="msg-row"><strong>Saldo Punti:</strong> <strong>${msg.saldo_punti || '0,00'}</strong></div>
-                    <div class="msg-row"><span>Bonus:</span> <span>€ ${msg.bonus || '0,00'}</span></div>
-                    <div class="msg-divider"></div>
-                    <div class="msg-footer">${msg.data || '--/--/----'} • ${msg.ora || '--:--'}</div>
-                </div>
-            `;
-        container.appendChild(bubble);
+        const wrapper = document.createElement('div');
+        wrapper.className = "msg-wrapper";
+
+        // È una transazione o una chat?
+        const isChat = msg.tipo === "chat";
+        const isCliente = isChat && msg.mittente === "cliente";
+
+        // Allineamento: a destra per i messaggi del cliente, a sinistra per negozio o transazioni
+        wrapper.style.justifyContent = isCliente ? "flex-end" : "flex-start";
+
+        // Creiamo il checkbox (condiviso e compatibile con la modalità selezione)
+        const checkboxHTML = `<input type="checkbox" class="msg-checkbox" value="${msg.id}" style="${isCliente ? 'margin-left: 10px; order: 1;' : 'margin-right: 10px;'}">`;
+
+        let bubbleHTML = "";
+
+        if (isChat) {
+            // Disegna bolla in stile WhatsApp
+            bubbleHTML = `
+                    <div class="msg-bubble-chat ${isCliente ? 'cliente' : 'negozio'}">
+                        <div class="chat-text">${msg.testo}</div>
+                        <div class="chat-footer">${msg.data} • ${msg.ora}</div>
+                    </div>
+                `;
+        } else {
+            // Disegna la "Ricevuta" della transazione
+            bubbleHTML = `
+                    <div class="msg-bubble">
+                        <div class="msg-content">
+                            <div class="msg-header">CHEMARIA FIDELITY</div>
+                            <div class="msg-title">Ciao, ${datiUtenteCorrente.nome || 'Utente'}<br>Card N: ${utenteCorrenteId}</div>
+                            <div class="msg-divider"></div>
+                            <div class="msg-row"><span>Saldo Iniziale:</span> <span>${msg.saldo_iniziale || '0,00'}</span></div>
+                            <div class="msg-row"><span>Punti Caricati:</span> <span style="color: #4caf50">+${msg.punti_caricati || '0,00'}</span></div>
+                            <div class="msg-row"><span>Punti Scaricati:</span> <span style="color: var(--danger)">-${msg.punti_scaricati || '0,00'}</span></div>
+                            <div class="msg-row"><strong>Saldo Punti:</strong> <strong>${msg.saldo_punti || '0,00'}</strong></div>
+                            <div class="msg-row"><span>Bonus:</span> <span>€ ${msg.bonus || '0,00'}</span></div>
+                            <div class="msg-divider"></div>
+                            <div class="msg-footer">${msg.data || '--/--/----'} • ${msg.ora || '--:--'}</div>
+                        </div>
+                    </div>
+                `;
+        }
+
+        // Inseriamo tutto nel wrapper
+        wrapper.innerHTML = isCliente ? bubbleHTML + checkboxHTML : checkboxHTML + bubbleHTML;
+        container.appendChild(wrapper);
     });
+
+    // Dopo aver disegnato i messaggi, scrolliamo in automatico in basso!
+    setTimeout(() => {
+        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    }, 100);
+}
+
+
+// --- 2. AGGIUNGI QUESTA NUOVA FUNZIONE ---
+async function inviaMessaggioChat() {
+    const inputEl = document.getElementById("chat-text-input");
+    const testo = inputEl.value.trim();
+
+    if (!testo) return; // Niente testo, ignoriamo silenziosamente
+
+    inputEl.disabled = true; // Blocca il tasto per evitare spam doppi
+
+    const now = new Date();
+    const dataStr = now.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const oraStr = now.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+    const timestamp = now.getTime();
+
+    const nuovoMessaggio = {
+        tipo: "chat",
+        mittente: "cliente",
+        testo: testo,
+        data: dataStr,
+        ora: oraStr,
+        timestamp: timestamp
+    };
+
+    try {
+        // Inviamo il file JSON a Firebase usando una richiesta POST
+        const url = `${FIREBASE_URL}/clienti/${utenteCorrenteId}/messaggi.json`;
+        const response = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(nuovoMessaggio)
+        });
+        const resData = await response.json();
+        const msgId = resData.name; // ID unico generato da Firebase
+
+        // Aggiorniamo la memoria locale dell'app al volo
+        if (!datiUtenteCorrente.messaggi) datiUtenteCorrente.messaggi = {};
+        datiUtenteCorrente.messaggi[msgId] = nuovoMessaggio;
+
+        await setLocalData("userData", { id: utenteCorrenteId, data: datiUtenteCorrente });
+
+        // Incrementiamo i "messaggi letti" così non compare il badge rosso per i messaggi che abbiamo inviato noi stessi
+        let messaggiGiaLetti = await getLocalData("messaggiLetti") || 0;
+        await setLocalData("messaggiLetti", messaggiGiaLetti + 1);
+
+        // Svuota la casella di testo
+        inputEl.value = "";
+        inputEl.disabled = false;
+
+        // Ridisegna la chat per mostrare la bolla verde in tempo reale
+        renderMessaggi();
+
+    } catch (e) {
+        mostraAvviso("Errore di Rete", "Impossibile inviare il messaggio. Controlla la connessione.", "error");
+        inputEl.disabled = false;
+    }
 }
 
     function attivaSelezioneMessaggi() {
