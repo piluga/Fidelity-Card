@@ -593,3 +593,67 @@ function chiudiModaleBonus() {
     document.getElementById("bonus-modal").classList.remove("active");
 }
 
+// ==========================================
+// 9. GESTIONE SWIPE TRA LE SCHERMATE
+// ==========================================
+let touchStartX = 0;
+let touchEndX = 0;
+let touchStartY = 0;
+let touchEndY = 0;
+
+// Definiamo l'ordine logico delle schermate per lo swipe
+const screensOrder = ['dashboard-screen', 'messages-screen', 'settings-screen'];
+
+function handleGesture() {
+    const xDiff = touchEndX - touchStartX;
+    const yDiff = touchEndY - touchStartY;
+
+    // Controlliamo che sia uno swipe orizzontale e abbastanza lungo (es. > 50px)
+    // Usiamo Math.abs per ignorare gli swipe verticali (scroll)
+    if (Math.abs(xDiff) > Math.abs(yDiff) && Math.abs(xDiff) > 50) {
+
+        // Troviamo la schermata attualmente attiva
+        const currentScreenEl = document.querySelector('.screen.active');
+        if (!currentScreenEl) return;
+
+        const currentScreenId = currentScreenEl.id;
+        const currentIndex = screensOrder.indexOf(currentScreenId);
+
+        // Se non siamo in una delle 3 schermate principali (es. siamo nel login), ignoriamo lo swipe
+        if (currentIndex === -1) return;
+
+        if (xDiff < 0) {
+            // Swipe verso SINISTRA -> Vai alla schermata successiva (es. da Home a Messaggi)
+            if (currentIndex < screensOrder.length - 1) {
+                navigaDaSwipe(screensOrder[currentIndex + 1]);
+            }
+        } else {
+            // Swipe verso DESTRA -> Vai alla schermata precedente (es. da Impostazioni a Messaggi)
+            if (currentIndex > 0) {
+                navigaDaSwipe(screensOrder[currentIndex - 1]);
+            }
+        }
+    }
+}
+
+function navigaDaSwipe(targetScreenId) {
+    // Simuliamo il click sul pulsante corrispondente nella barra di navigazione
+    const navIndex = screensOrder.indexOf(targetScreenId);
+    const navElements = document.querySelectorAll('.nav-item');
+    if (navElements[navIndex]) {
+        cambiaSchermataNav(targetScreenId, navElements[navIndex]);
+    }
+}
+
+// Ascoltiamo il momento in cui il dito tocca lo schermo
+document.addEventListener('touchstart', e => {
+    touchStartX = e.changedTouches[0].screenX;
+    touchStartY = e.changedTouches[0].screenY;
+}, { passive: true });
+
+// Ascoltiamo il momento in cui il dito si stacca dallo schermo
+document.addEventListener('touchend', e => {
+    touchEndX = e.changedTouches[0].screenX;
+    touchEndY = e.changedTouches[0].screenY;
+    handleGesture();
+}, { passive: true });
