@@ -384,6 +384,109 @@ header {
     padding-bottom: 20px;
 }
 
+/* --- BARRA CHAT E BOLLE STILE WHATSAPP --- */
+.chat-input-container {
+    position: fixed;
+    bottom: 65px; /* Appena sopra la barra di navigazione */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 450px;
+    background-color: var(--surface-color);
+    padding: 10px 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 -4px 10px rgba(0,0,0,0.2);
+    z-index: 40;
+}
+
+    .chat-input-container input {
+        flex: 1;
+        padding: 12px 18px;
+        border-radius: 25px;
+        border: none;
+        background-color: #2a2a2a;
+        color: white;
+        font-size: 14px;
+        outline: none;
+    }
+
+.chat-send-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 18px;
+    transition: transform 0.2s;
+}
+
+    .chat-send-btn:active {
+        transform: scale(0.9);
+    }
+
+/* Aggiungi padding alla schermata messaggi per non far coprire l'ultimo msg dalla barra input */
+#messages-screen {
+    padding-bottom: 140px;
+}
+
+.msg-wrapper {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+    margin-bottom: 5px;
+    width: 100%;
+}
+
+.msg-bubble-chat {
+    max-width: 85%;
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-size: 14px;
+    position: relative;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    display: flex;
+    flex-direction: column;
+    color: #e9edef;
+}
+
+    .msg-bubble-chat.cliente {
+        background-color: #005c4b; /* Verde WA in uscita */
+        border-bottom-right-radius: 0;
+    }
+
+    .msg-bubble-chat.negozio {
+        background-color: #202c33; /* Grigio WA in entrata */
+        border-bottom-left-radius: 0;
+    }
+
+.chat-text {
+    word-wrap: break-word;
+    line-height: 1.4;
+}
+
+.chat-footer {
+    text-align: right;
+    font-size: 10px;
+    color: rgba(255,255,255,0.6);
+    margin-top: 4px;
+}
+
+/* Rimuovi la freccetta/codina dalle bolle delle transazioni per pulizia visiva */
+.msg-wrapper .msg-bubble::before {
+    display: none;
+}
+
+.msg-wrapper .msg-bubble {
+    border-radius: 12px;
+}
+
 /* Stile Bolla WhatsApp Dark */
 .msg-bubble {
     background-color: #056162; /* Verde WhatsApp Scuro */
