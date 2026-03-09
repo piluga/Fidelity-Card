@@ -16,12 +16,12 @@
     -webkit-user-select: none; /* Per Safari/iOS */
 }
 
-body {
+html, body {
+    overscroll-behavior-y: none; /* Blocca il pull-to-refresh */
     background-color: var(--bg-color);
     color: var(--text-main);
     display: flex;
     justify-content: center;
-    overscroll-behavior-y: none; /* 🚀 La magia che blocca il pull-to-refresh */
 }
 
 .screen {
@@ -626,4 +626,5 @@ header {
     60% {
         transform: translateY(-10px);
     }
+
 }
