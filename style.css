@@ -16,12 +16,21 @@
     -webkit-user-select: none; /* Per Safari/iOS */
 }
 
-html, body {
-    overscroll-behavior-y: none; /* Blocca il pull-to-refresh */
+/* Blocca il ricaricamento a livello di radice senza rompere il layout */
+html {
+    overscroll-behavior-y: none; 
+    width: 100%;
+    height: 100%;
+}
+
+body {
+    overscroll-behavior-y: none; 
     background-color: var(--bg-color);
     color: var(--text-main);
     display: flex;
     justify-content: center;
+    width: 100%;
+    min-height: 100vh; /* Garantisce che prenda sempre tutta l'altezza dello schermo */
 }
 
 .screen {
@@ -628,3 +637,4 @@ header {
     }
 
 }
+
