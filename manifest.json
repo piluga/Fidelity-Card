@@ -7,15 +7,15 @@
   "background_color": "#121212",
   "theme_color": "#121212",
   "orientation": "portrait",
-  "icone": [
+  "icons": [
     {
-      "src": "icone/icon-192.png",
+      "src": "icone/dashboard192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "icone/icon-512.png",
+      "src": "icone/dashboard512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
