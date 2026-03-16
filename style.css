@@ -434,11 +434,16 @@ header {
     align-items: center;
     justify-content: center;
     transition: transform 0.2s, color 0.2s;
+    /* LE DUE NUOVE RIGHE DA AGGIUNGERE */
+    outline: none !important;
+    -webkit-tap-highlight-color: transparent !important;
 }
 
-    .chat-attach-inside:hover {
-        transform: scale(1.1);
-        color: #00ADB5; /* Si illumina col tuo colore primario al passaggio del dito/mouse */
+    /* Aggiungiamo anche questo blocco per sicurezza extra */
+    .chat-attach-inside:focus,
+    .chat-attach-inside:active {
+        outline: none !important;
+        background-color: transparent !important;
     }
 
 .chat-send-btn {
