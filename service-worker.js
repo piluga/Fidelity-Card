@@ -5,7 +5,7 @@ const ASSETS_TO_CACHE = [
     './style.css',
     './app.js',
     './manifest.json',
-    './assets/icons/user-avatar.png'
+    './icone/user-avatar.png'
 ];
 
 // Installazione del Service Worker e salvataggio in cache
