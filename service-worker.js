@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fidelity-app-v27';
+const CACHE_NAME = 'fidelity-app-v30';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
