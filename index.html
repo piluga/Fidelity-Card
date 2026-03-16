@@ -94,7 +94,13 @@
         </main>
 
         <div class="chat-input-container">
-            <input type="text" id="chat-text-input" placeholder="Scrivi al negozio..." onkeypress="if(event.key === 'Enter') inviaMessaggioChat()">
+            <input type="file" id="chat-image-input" accept="image/*" style="display: none;" onchange="gestisciUploadImmagine(event)">
+
+            <div class="chat-input-wrapper">
+                <input type="text" id="chat-text-input" placeholder="Scrivi al negozio..." onkeypress="if(event.key === 'Enter') inviaMessaggioChat()">
+                <button class="chat-attach-inside" onclick="document.getElementById('chat-image-input').click()" title="Allega Foto">📎</button>
+            </div>
+
             <button class="chat-send-btn" onclick="inviaMessaggioChat()">➤</button>
         </div>
     </div>
