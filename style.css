@@ -12,6 +12,14 @@
     margin: 0;
     padding: 0;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-user-select: none; /* Blocca selezione su Safari/iOS */
+    user-select: none; /* Blocca selezione sugli altri browser */
+}
+
+/* 🚀 SALVAGENTE: Permette di scrivere e selezionare testo SOLO dentro le caselle di input */
+input, textarea, select {
+    -webkit-user-select: auto !important;
+    user-select: auto !important;
 }
 
 html {
