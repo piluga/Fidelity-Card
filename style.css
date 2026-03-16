@@ -12,25 +12,13 @@
     margin: 0;
     padding: 0;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    user-select: none; /* Disabilita la selezione del testo per un vero effetto App */
-    -webkit-user-select: none; /* Per Safari/iOS */
-}
-
-/* Blocca il ricaricamento a livello di radice senza rompere il layout */
-html {
-    overscroll-behavior-y: none; 
-    width: 100%;
-    height: 100%;
 }
 
 body {
-    overscroll-behavior-y: none; 
     background-color: var(--bg-color);
     color: var(--text-main);
     display: flex;
     justify-content: center;
-    width: 100%;
-    min-height: 100vh; /* Garantisce che prenda sempre tutta l'altezza dello schermo */
 }
 
 .screen {
@@ -413,34 +401,76 @@ header {
     z-index: 40;
 }
 
-    .chat-input-container input {
+/* Contenitore a pillola che simula l'input */
+.chat-input-wrapper {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    background-color: #2a2a2a;
+    border-radius: 25px;
+    padding-right: 15px; /* Crea spazio per non far accavallare testo e graffetta */
+}
+
+    /* L'input vero e proprio diventa trasparente e senza bordi */
+    .chat-input-wrapper input {
         flex: 1;
         padding: 12px 18px;
-        border-radius: 25px;
         border: none;
-        background-color: #2a2a2a;
+        background-color: transparent;
         color: white;
         font-size: 14px;
         outline: none;
     }
 
-.chat-send-btn {
-    width: 42px;
-    height: 42px;
-    border-radius: 50%;
-    background-color: var(--primary-color);
-    color: white;
+/* La graffetta dentro la pillola */
+.chat-attach-inside {
+    background: none;
     border: none;
+    color: #8888bb;
+    font-size: 22px;
+    cursor: pointer;
+    padding: 0 5px;
     display: flex;
     align-items: center;
     justify-content: center;
-    cursor: pointer;
-    font-size: 18px;
-    transition: transform 0.2s;
+    transition: transform 0.2s, color 0.2s;
 }
 
+    .chat-attach-inside:hover {
+        transform: scale(1.1);
+        color: #00ADB5; /* Si illumina col tuo colore primario al passaggio del dito/mouse */
+    }
+
+.chat-send-btn {
+    -webkit-appearance: none !important; /* Blocca le interferenze di iOS/Safari */
+    appearance: none !important;
+    width: 45px !important;
+    height: 45px !important;
+    min-width: 45px !important;
+    max-width: 45px !important;
+    flex-shrink: 0 !important;
+    aspect-ratio: 1 / 1 !important; /* Forza la proporzione quadrata per fare il cerchio */
+    border-radius: 50% !important; /* Raggio al 50% per renderlo tondo */
+    background-color: var(--primary-color) !important;
+    color: white !important;
+    border: none !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    font-size: 20px !important;
+    padding: 0 !important;
+    margin-left: 5px !important;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important;
+    transition: transform 0.2s ease-in-out;
+}
+
+    .chat-send-btn:hover {
+        transform: scale(1.05);
+    }
+
     .chat-send-btn:active {
-        transform: scale(0.9);
+        transform: scale(0.95);
     }
 
 /* Aggiungi padding alla schermata messaggi per non far coprire l'ultimo msg dalla barra input */
@@ -635,6 +665,4 @@ header {
     60% {
         transform: translateY(-10px);
     }
-
 }
-
