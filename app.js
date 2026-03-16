@@ -389,10 +389,17 @@ function renderMessaggi() {
         let bubbleHTML = "";
 
         if (isChat) {
+            // --- NOVITÀ: GESTIONE IMMAGINE NELLA BOLLA ---
+            let contenutoChat = msg.testo;
+            if (msg.immagineUrl) {
+                // Se c'è un'immagine, la disegniamo cliccabile per ingrandirla
+                contenutoChat = `<img src="${msg.immagineUrl}" style="max-width: 100%; border-radius: 8px; margin-bottom: 5px; cursor: pointer;" onclick="window.open('${msg.immagineUrl}', '_blank')"><br>${msg.testo !== "📷 Immagine" ? msg.testo : ""}`;
+            }
+
             // Disegna bolla in stile WhatsApp
             bubbleHTML = `
                     <div class="msg-bubble-chat ${isCliente ? 'cliente' : 'negozio'}">
-                        <div class="chat-text">${msg.testo}</div>
+                        <div class="chat-text">${contenutoChat}</div>
                         <div class="chat-footer">${msg.data} • ${msg.ora}</div>
                     </div>
                 `;
@@ -787,6 +794,78 @@ function handleGesture() {
     }
 }
 
+// ==========================================
+// 10. GESTIONE UPLOAD IMMAGINI (Via ImgBB)
+// ==========================================
+async function gestisciUploadImmagine(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Modale di attesa personalizzato
+    mostraAvviso("Caricamento in corso ⏳", "Sto inviando la foto, attendi un istante...", "info");
+
+    const apiKey = "0b8395f811eae2f921ef64ba71383003"; // La tua chiave API ImgBB
+    const formData = new FormData();
+    formData.append("image", file);
+
+    try {
+        // Invio diretto a ImgBB
+        const response = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
+            method: 'POST',
+            body: formData
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            const immagineUrl = data.data.url; // Il link pubblico e gratuito generato da ImgBB
+            await salvaMessaggioImmagine(immagineUrl);
+            mostraAvviso("Fatto! 🎉", "Foto inviata con successo.", "success");
+            renderMessaggi();
+        } else {
+            throw new Error("Errore dal server immagini.");
+        }
+
+    } catch (error) {
+        mostraAvviso("Errore ❌", "Impossibile caricare l'immagine. Riprova più tardi.", "error");
+    } finally {
+        event.target.value = ""; // Svuota l'input per permettere di ricaricare la stessa foto se necessario
+    }
+}
+
+async function salvaMessaggioImmagine(immagineUrl) {
+    const now = new Date();
+    const dataStr = now.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const oraStr = now.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+    const timestamp = now.getTime();
+
+    const nuovoMessaggio = {
+        tipo: "chat",
+        mittente: "cliente",
+        testo: "📷 Immagine",
+        immagineUrl: immagineUrl,
+        data: dataStr,
+        ora: oraStr,
+        timestamp: timestamp
+    };
+
+    const url = `${FIREBASE_URL}/clienti/${utenteCorrenteId}/messaggi.json`;
+    const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(nuovoMessaggio)
+    });
+
+    const resData = await response.json();
+    const msgId = resData.name;
+
+    if (!datiUtenteCorrente.messaggi) datiUtenteCorrente.messaggi = {};
+    datiUtenteCorrente.messaggi[msgId] = nuovoMessaggio;
+    await setLocalData("userData", { id: utenteCorrenteId, data: datiUtenteCorrente });
+
+    let messaggiGiaLetti = await getLocalData("messaggiLetti") || 0;
+    await setLocalData("messaggiLetti", messaggiGiaLetti + 1);
+}
 function navigaDaSwipe(targetScreenId) {
     // Simuliamo il click sul pulsante corrispondente nella barra di navigazione
     const navIndex = screensOrder.indexOf(targetScreenId);
