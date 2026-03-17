@@ -432,9 +432,9 @@ header {
 
     /* Trasformiamo l'input in una textarea stile WhatsApp */
     .chat-input-wrapper textarea {
-        flex: 1;
-        width: 100%; /* 🚀 Forza l'area a prendere tutto lo spazio */
-        min-width: 0; /* 🚀 Impedisce collassi strani nei contenitori flex */
+        flex: 1 1 100%; /* 🚀 Il vero segreto: cresci, restringiti, prendi il 100% disponibile */
+        width: 100%;
+        min-width: 0;
         padding: 12px 15px;
         border: none;
         background-color: transparent;
@@ -458,13 +458,14 @@ header {
 
 /* La graffetta dentro la pillola */
 .chat-attach-inside {
-    flex-shrink: 0; /* 🚀 Vieta categoricamente al bottone di deformarsi */
+    flex: 0 0 35px; /* 🚀 Nessuna crescita, nessun restringimento, fisso a 35px */
+    width: 35px;
     background: none;
     border: none;
     color: #8888bb;
     font-size: 22px;
     cursor: pointer;
-    padding: 0 5px;
+    padding: 0;
     display: flex;
     align-items: center;
     justify-content: center;
