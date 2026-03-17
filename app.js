@@ -479,9 +479,10 @@ async function inviaMessaggioChat() {
         let messaggiGiaLetti = await getLocalData("messaggiLetti") || 0;
         await setLocalData("messaggiLetti", messaggiGiaLetti + 1);
 
-        // Svuota la casella di testo
+        // Svuota la casella di testo e resetta l'altezza
         inputEl.value = "";
         inputEl.disabled = false;
+        inputEl.style.height = 'auto'; // 🚀 Riporta la casella a 1 riga!
 
         // Ridisegna la chat per mostrare la bolla verde in tempo reale
         renderMessaggi();
