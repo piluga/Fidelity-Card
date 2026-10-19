@@ -706,3 +706,14 @@ header {
         transform: translateY(-10px);
     }
 }
+
+button:disabled { opacity: .5; cursor: wait; }
+.chat-text { white-space: pre-wrap; overflow-wrap: anywhere; }
+.msg-bubble-chat img { max-width: 100%; height: auto; border-radius: 8px; }
+#barcode { max-width: 100%; height: auto; }
+#sync-status:not(:empty) { position: fixed; top: 0; left: 0; width: 100%; padding: 8px; background: #553900; text-align: center; z-index: 60; font-size: 12px; }
+.messages-actions { display: flex; gap: 5px; flex-wrap: wrap; }
+.messages-header { gap: 8px; }
+@media (max-width: 380px) { .messages-header { flex-direction: column; align-items: stretch; } }
+
+#foto-status { position: fixed; bottom: 137px; left: 50%; transform: translateX(-50%); max-width: 420px; width: 90%; z-index: 41; padding: 8px; font-size: 12px; }
