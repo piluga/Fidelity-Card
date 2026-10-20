@@ -4,8 +4,8 @@
   "description": "La tua Fidelity Card digitale sempre con te.",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#121212",
-  "theme_color": "#121212",
+  "background_color": "#0E0F12",
+  "theme_color": "#0E0F12",
   "orientation": "portrait",
   "icons": [
     {

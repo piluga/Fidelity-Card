@@ -143,7 +143,40 @@ export function creaClient(config, { fetchImpl = globalThis.fetch.bind(globalThi
         const campi = ['nome', 'punti', 'bonus', 'dataUltimaOperazione', 'messaggi'];
         const values = await Promise.all(campi.map(c => database('clienti/' + key(scheda) + '/' + c)));
         if (values.every(v => v === null)) throw new ErroreFirebase('TESSERA', 'Tessera non disponibile. Contatta il negozio.');
-        return { scheda, ...Object.fromEntries(campi.map((c,i) => [c,values[i]])) };
+        // FIDELITY_ELIMINA_CLIENTE_SYNC_V1: preferenze private per UID, mai messaggi originali.
+        // Senza regole dedicate NON bloccare login, lettura punti e messaggi.
+        let eliminati = {}, eliminazioneDisponibile = true;
+        try {
+            const result = await database('preferenze_clienti/' + key(sessione.uid) + '/messaggi_eliminati');
+            if (result !== null && (typeof result !== 'object' || Array.isArray(result)))
+                throw new ErroreFirebase('DATI', 'Preferenze messaggi non valide.');
+            eliminati = result ?? {};
+        } catch (error) {
+            if (error.code !== 'PERMESSI') throw error;
+            eliminazioneDisponibile = false;
+        }
+        return { scheda, ...Object.fromEntries(campi.map((c,i) => [c,values[i]])),
+            messaggiEliminati: eliminati, eliminazioneDisponibile };
+    }
+    async function eliminaMessaggi(ids) {
+        if (!sessione) throw erroreSessione();
+        if (!Array.isArray(ids) || !ids.length || ids.length > 100 ||
+            !ids.every(id => typeof id === 'string' && id.length > 0 && id.length <= 128))
+            throw new ErroreFirebase('MESSAGGIO', 'Selezione non valida (massimo 100 messaggi).');
+        // Scrive solo marker privati di eliminazione; NON effettua DELETE sui messaggi.
+        // Singoli PUT indipendenti evitano la perdita di eliminazioni simultanee di due device.
+        const unici = [...new Set(ids)];
+        // Piccoli gruppi paralleli: non bloccare la UI per decine di richieste in serie.
+        for (let i = 0; i < unici.length; i += 5) {
+            const risultati = await Promise.allSettled(unici.slice(i, i + 5).map(id =>
+                database('preferenze_clienti/' + key(sessione.uid) + '/messaggi_eliminati/' + key(id), {
+                    method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: 'true'
+                })
+            ));
+            const errore = risultati.find(result => result.status === 'rejected');
+            if (errore) throw errore.reason;
+        }
+        return true;
     }
     async function invia(id, messaggio) {
         const scheda = await tessera();
@@ -222,6 +255,6 @@ export function creaClient(config, { fetchImpl = globalThis.fetch.bind(globalThi
             method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ requestType: 'PASSWORD_RESET', email })
         });
     }
-    return { configurato, accedi, ripristina, esci, profilo, invia, cambiaPassword, recuperaPassword, caricaFoto, leggiFoto,
+    return { configurato, accedi, ripristina, esci, profilo, invia, eliminaMessaggi, cambiaPassword, recuperaPassword, caricaFoto, leggiFoto,
         get uid() { return sessione?.uid; }, get autenticato() { return Boolean(sessione); } };
 }

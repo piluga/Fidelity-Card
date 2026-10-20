@@ -7,7 +7,7 @@ const $ = id => document.getElementById(id);
 const SESSION_KEY = 'fidelity.auth.v2';
 let generazione = 0, profilo = null, timer = null, polling = false, errori = 0;
 let ricorda = false, email = '', selezione = false, invio = false, bozza = null;
-let prefs = {}, letti = new Set(), nascosti = new Set(), screen = 'login-screen';
+let prefs = {}, letti = new Set(), nascosti = new Set(), eliminati = new Set(), eliminazioneDisponibile = false, eliminazioneInCorso = false, screen = 'login-screen'; // FIDELITY_ELIMINA_CLIENTE_SYNC_V1
 let foto = null;
 const immaginiAperte = new Set();
 function liberaImmagini() { immaginiAperte.forEach(url => URL.revokeObjectURL(url)); immaginiAperte.clear(); }
@@ -37,7 +37,7 @@ function naviga(id) {
 function logout() {
     generazione++; api.esci(); clearTimeout(timer); polling = false; invio = false;
     rimuoviLocale(SESSION_KEY); ricorda = false; email = ''; profilo = null; bozza = null;
-    prefs = {}; letti = new Set(); nascosti = new Set(); selezione = false;
+    prefs = {}; letti = new Set(); nascosti = new Set(); eliminati = new Set(); eliminazioneDisponibile = false; eliminazioneInCorso = false; selezione = false;
     foto = null; liberaImmagini(); $('foto-status').classList.add('hidden');
     document.querySelectorAll('.modal').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('input:not([type=checkbox]), textarea').forEach(el => { el.value = ''; el.disabled = false; });
@@ -70,7 +70,7 @@ function dashboard() {
 }
 function aggiornaBadge() {
     if (!profilo) return;
-    const all = messaggi(profilo.messaggi).filter(m => !nascosti.has(m.id));
+    const all = messaggi(profilo.messaggi).filter(m => !nascosti.has(m.id) && !eliminati.has(m.id));
     if (screen === 'messages-screen') {
         all.forEach(m => letti.add(m.id));
         try { salvaLocale(scope('letti'), [...letti]); } catch { /* Lettura valida anche senza memoria locale. */ }
@@ -88,7 +88,18 @@ function renderMessaggi() {
     container.replaceChildren(); container.classList.toggle('selection-mode', selezione);
     $('btn-delete-msg').classList.toggle('hidden', !selezione);
     $('btn-select-msg').textContent = selezione ? 'Annulla' : 'Seleziona';
-    const all = messaggi(profilo.messaggi).filter(m => !nascosti.has(m.id));
+    let eliminaBtn = $('btn-elimina-msg');
+    if (!eliminaBtn) {
+        eliminaBtn = document.createElement('button');
+        eliminaBtn.type = 'button'; eliminaBtn.id = 'btn-elimina-msg';
+        eliminaBtn.className = 'icon-btn-small text-danger';
+        eliminaBtn.textContent = '🗑️ Elimina';
+        eliminaBtn.addEventListener('click', eliminaSelezionati);
+        $('btn-delete-msg').insertAdjacentElement('afterend', eliminaBtn);
+    }
+    eliminaBtn.classList.toggle('hidden', !selezione);
+    eliminaBtn.disabled = eliminazioneInCorso;
+    const all = messaggi(profilo.messaggi).filter(m => !nascosti.has(m.id) && !eliminati.has(m.id));
     if (!all.length) container.append(nodo('p', 'empty-messages', 'Nessun messaggio visibile.'));
     for (const m of all) {
         const wrapper = nodo('article','msg-wrapper','');
@@ -118,15 +129,77 @@ function renderMessaggi() {
                 bubble.append(button);
             }
         } else {
-            bubble.append(nodo('strong','msg-header','Movimento punti'));
-            for (const [campo,label] of Object.entries({saldo_iniziale:'Saldo iniziale',punti_caricati:'Punti caricati',punti_scaricati:'Punti utilizzati',saldo_punti:'Saldo punti',bonus:'Bonus'})) {
-                if (m[campo] != null) bubble.append(nodo('p','msg-row', label + ': ' + testo(m[campo])));
+            // FIDELITY_TEMPLATE_VENDITA_SOLO_DUE_V1:
+            // Mostra il testo completo del template vendita SENZA ripetere il riepilogo.
+            // I dati numerici originali restano nell'archivio e alimentano Ultimi punti caricati.
+            if (m.tipo === 'transazione' && typeof m.testo === 'string' && m.testo.trim()) {
+                bubble.append(nodo('strong','msg-header','Riepilogo acquisto'));
+                bubble.append(nodo('p','chat-text',m.testo));
+            } else {
+                bubble.append(nodo('strong','msg-header','Movimento punti'));
+                for (const [campo,label] of Object.entries({saldo_iniziale:'Saldo iniziale',punti_caricati:'Punti caricati',punti_scaricati:'Punti utilizzati',saldo_punti:'Saldo punti',bonus:'Bonus'})) {
+                    if (m[campo] != null) bubble.append(nodo('p','msg-row', label + ': ' + testo(m[campo])));
+                }
+                if (m.testo) bubble.append(nodo('p','chat-text',m.testo));
             }
-            if (m.testo) bubble.append(nodo('p','chat-text',m.testo));
         }
         bubble.append(nodo('small','chat-footer',testo(m.data) + ' ' + testo(m.ora)));
         wrapper.append(bubble); container.append(wrapper);
     }
+}
+// FIDELITY_ELIMINA_CLIENTE_SYNC_V1: conferma e sincronizzazione tra dispositivi.
+function aggiornaEliminati(next) {
+    eliminati = new Set(Object.entries(next?.messaggiEliminati ?? {})
+        .filter(([, value]) => value === true).map(([id]) => id));
+    eliminazioneDisponibile = !!next?.eliminazioneDisponibile;
+}
+function eliminaSelezionati() {
+    if (!profilo || eliminazioneInCorso) return;
+    const ids = [...$('messages-container').querySelectorAll('input:checked')]
+        .map(el => el.value).filter(id => Object.hasOwn(profilo.messaggi || {}, id) && !eliminati.has(id));
+    if (!ids.length) { avviso('Seleziona almeno un messaggio da eliminare.'); return; }
+    if (ids.length > 100) { avviso('Seleziona al massimo 100 messaggi per volta.'); return; }
+    if (!eliminazioneDisponibile) {
+        avviso('Eliminazione sincronizzata non ancora attiva. Occorre pubblicare le regole Firebase delle preferenze cliente.');
+        return;
+    }
+    $('confirm-message').textContent = 'Eliminare ' + ids.length + ' messaggi dalla tua conversazione su TUTTI i dispositivi? Lo storico del negozio e i movimenti Fidelity saranno conservati.';
+    $('confirm-modal').classList.add('active');
+    const gen = generazione, scheda = profilo.scheda;
+    $('btn-confirm-action').onclick = async () => {
+        if (gen !== generazione || eliminazioneInCorso || !profilo || profilo.scheda !== scheda) return;
+        eliminazioneInCorso = true;
+        $('btn-confirm-action').disabled = true;
+        const button = $('btn-elimina-msg');
+        if (button) { button.disabled = true; button.textContent = '⏳ Eliminazione…'; }
+        try {
+            await api.eliminaMessaggi(ids);
+            const fresh = await api.profilo();
+            if (gen !== generazione || fresh.scheda !== scheda) return;
+            profilo = fresh; aggiornaEliminati(fresh);
+            selezione = false; $('confirm-modal').classList.remove('active');
+            renderMessaggi(); aggiornaBadge();
+        } catch (error) {
+            if (gen !== generazione) return;
+            // Anche se una scrittura ha avuto successo prima dell'errore, sincronizza lo stato reale.
+            try {
+                const fresh = await api.profilo();
+                if (gen === generazione && fresh.scheda === scheda) {
+                    profilo = fresh; aggiornaEliminati(fresh); renderMessaggi(); aggiornaBadge();
+                }
+            } catch { /* Mantiene l'errore originale e i messaggi leggibili. */ }
+            $('confirm-modal').classList.remove('active');
+            avviso(error.code === 'PERMESSI'
+                ? 'Eliminazione non autorizzata: controlla le regole Firebase delle preferenze cliente.'
+                : 'Eliminazione non completata. Controlla la conversazione prima di riprovare.');
+        } finally {
+            if (gen === generazione) {
+                eliminazioneInCorso = false;
+                $('btn-confirm-action').disabled = false;
+                if (button) { button.disabled = false; button.textContent = '🗑️ Elimina'; }
+            }
+        }
+    };
 }
 function pianifica() { clearTimeout(timer); timer = setTimeout(aggiorna, Math.min(60000, 5000 * 2 ** errori)); }
 async function aggiorna() {
@@ -137,8 +210,9 @@ async function aggiorna() {
         const next = await api.profilo();
         if (gen !== generazione) return;
         if (next.scheda !== profilo.scheda) { logout(); erroreLogin('Associazione tessera aggiornata. Accedi nuovamente.'); return; }
-        const changed = JSON.stringify(profilo.messaggi) !== JSON.stringify(next.messaggi);
-        profilo = next; dashboard(); if (changed && screen === 'messages-screen') renderMessaggi();
+        const changed = JSON.stringify(profilo.messaggi) !== JSON.stringify(next.messaggi) ||
+            JSON.stringify(profilo.messaggiEliminati) !== JSON.stringify(next.messaggiEliminati);
+        profilo = next; aggiornaEliminati(next); dashboard(); if (changed && screen === 'messages-screen' && !eliminazioneInCorso) renderMessaggi();
         $('sync-status').textContent = ''; errori = 0;
     } catch (error) {
         if (gen !== generazione) return;
@@ -158,7 +232,7 @@ async function login(saved) {
             await api.accedi(email, $('login-password').value);
         }
         const result = await api.profilo(); if (gen !== generazione) return;
-        profilo = result; caricaPreferenze(); $('login-password').value = ''; dashboard(); naviga('dashboard-screen'); pianifica();
+        profilo = result; aggiornaEliminati(result); caricaPreferenze(); $('login-password').value = ''; dashboard(); naviga('dashboard-screen'); pianifica();
     } catch (error) { if (gen === generazione) { logout(); erroreLogin(error.message || 'Accesso non riuscito.'); } }
     finally { if (gen === generazione) $('btn-login').disabled = false; }
 }

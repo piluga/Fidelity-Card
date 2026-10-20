@@ -2,14 +2,15 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Fidelity Card</title>
     <meta name="referrer" content="no-referrer">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https: blob:; connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebasestorage.googleapis.com https://fidelity-gestionale-default-rtdb.europe-west1.firebasedatabase.app; object-src 'none'; base-uri 'self'; form-action 'self'">
 
-    <meta name="theme-color" content="#121212">
+    <meta name="theme-color" content="#0E0F12">
     <link rel="apple-touch-icon" href="icone/icon-192.png">
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="midnight-gold.css">
     <script src="jsbarcode.js" defer></script>
 </head>
 <body>
@@ -17,16 +18,21 @@
 
     <div id="login-screen" class="screen active">
         <div class="login-container">
-            <h1>Fidelity App</h1>
-            <p>Accedi per vedere i tuoi punti</p>
+            <div class="login-symbol" aria-hidden="true">✦</div>
+            <div class="eyebrow login-eyebrow">CHEMARIA · MEMBERS CLUB</div>
+            <h1>CheMaria <span>Fidelity</span></h1>
+            <p class="login-subtitle">La tua carta digitale, sempre con te.</p>
+            <div class="login-divider" aria-hidden="true"></div>
+            <h2 class="login-form-heading">Bentornato</h2>
+            <p class="login-form-caption">Accedi per consultare punti, bonus e messaggi.</p>
 
             <div class="input-group">
-                <label>Email</label>
+                <label for="login-email">Indirizzo email</label>
                 <input type="email" id="login-email" autocomplete="username" required placeholder="nome@esempio.it">
             </div>
 
             <div class="input-group">
-                <label>Password</label>
+                <label for="login-password">Password</label>
                 <input type="password" id="login-password" autocomplete="current-password" placeholder="Inserisci password">
             </div>
 
@@ -36,53 +42,58 @@
             </div>
             <p class="warning-text">Attiva solo sul tuo dispositivo personale. La tessera deve essere associata al tuo account dal negozio; le vecchie credenziali non sono piu valide.</p>
 
-            <button id="btn-login" disabled data-action="login">Accedi</button><button class="icon-btn-small" data-action="recupera">Password dimenticata</button>
+            <button id="btn-login" disabled data-action="login">Accedi <span aria-hidden="true">→</span></button>
+            <button class="icon-btn-small login-recovery" data-action="recupera">Password dimenticata?</button>
             <p id="login-error" class="error-msg"></p>
         </div>
     </div>
 
     <div id="dashboard-screen" class="screen">
-        <header>
+        <header class="home-header">
             <div class="user-header-info">
                 <img src="icone/user-avatar.svg" alt="Utente" class="user-icon">
-                <h2 id="user-name">Nome Cognome</h2>
+                <div class="user-intro">
+                    <span class="eyebrow">LA TUA AREA PERSONALE</span>
+                    <h2 id="user-name">Nome Cognome</h2>
+                </div>
             </div>
-
+            <span class="header-spark" aria-hidden="true">✧</span>
         </header>
 
         <main>
             <div class="card punti-card">
-                <h3>Il tuo Saldo Punti</h3>
+                <div class="hero-topline"><span class="eyebrow">IL TUO PATRIMONIO PREMI</span><span aria-hidden="true" class="hero-star">✦</span></div>
+                <h3>Il tuo saldo punti</h3>
                 <div class="punti-grandi" id="user-punti">0</div>
-                <div class="valore-euro">Bonus: <strong id="user-euro">€ 0,00</strong></div>
+                <div class="hero-unit">PUNTI DISPONIBILI</div>
+                <div class="valore-euro"><span>Bonus disponibile</span><strong id="user-euro">€ 0,00</strong></div>
             </div>
 
             <div class="card barcode-card">
-                <p>Mostra questo codice in cassa</p>
-                <svg id="barcode"></svg>
-                <p class="numero-scheda-text" id="user-scheda">0000000000000</p>
+                <div class="membership-heading"><span>CHEMARIA</span><span class="membership-star" aria-hidden="true">✧</span></div>
+                <div class="membership-name">Fidelity Membership</div>
+                <div class="barcode-panel">
+                    <p>Mostra questo codice in cassa</p>
+                    <div class="barcode-readable">
+                        <svg id="barcode"></svg>
+                        <p class="numero-scheda-text" id="user-scheda">0000000000000</p>
+                    </div>
+                </div>
+                <div class="membership-footer"><span>LA TUA CARD PERSONALE</span><span>✦ EXCLUSIVE REWARDS</span></div>
             </div>
 
             <div class="card info-card">
-                <div class="info-row">
-                    <span>Ultimi Punti Caricati:</span>
-                    <strong id="user-bonus">0</strong>
-                </div>
-                <div class="info-row">
-                    <span>Ultima operazione:</span>
-                    <strong id="user-data">--/--/----</strong>
-                </div>
+                <div class="info-row"><span>Ultimi punti caricati</span><strong id="user-bonus">0</strong></div>
+                <div class="info-row"><span>Ultima operazione</span><strong id="user-data">--/--/----</strong></div>
             </div>
 
-            <div class="promo-banner">
-                🚀 <strong>Promo del mese:</strong> Prossimamente!
-            </div>
+            <div class="promo-banner"><span class="promo-icon" aria-hidden="true">✧</span><span><strong>Novità e promozioni</strong><small>Le prossime sorprese sono in arrivo.</small></span><span class="promo-arrow" aria-hidden="true">↗</span></div>
         </main>
     </div>
 
     <div id="messages-screen" class="screen">
         <header class="messages-header">
-            <h2>I tuoi Movimenti</h2>
+            <div class="screen-heading"><span class="eyebrow">RIMANIAMO IN CONTATTO</span><h2>Messaggi e movimenti</h2><p>Le comunicazioni del tuo negozio</p></div>
             <div class="messages-actions">
                 <button class="icon-btn-small" data-action="seleziona" id="btn-select-msg">Seleziona</button>
                 <button class="icon-btn-small text-danger hidden" data-action="nascondi" id="btn-delete-msg">Nascondi</button>
@@ -111,17 +122,15 @@
                 </button>
             </div>
 
-            <button class="chat-send-btn" data-action="invia">➤</button>
+            <button class="chat-send-btn" data-action="invia" aria-label="Invia messaggio"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg></button>
         </div>
     </div>
 
     <div id="settings-screen" class="screen">
-        <header>
-            <h2>Impostazioni</h2>
-        </header>
+        <header class="settings-header"><div class="screen-heading"><span class="eyebrow">IL TUO SPAZIO PERSONALE</span><h2>Impostazioni</h2><p>Personalizza la tua Fidelity Card</p></div></header>
         <main>
             <div class="card" style="margin-bottom: 20px;">
-                <h3>Personalizzazione Profilo</h3>
+                <h3><span class="section-icon" aria-hidden="true">✧</span> Personalizzazione profilo</h3>
                 <div class="input-checkbox" style="margin-top: 15px;">
                     <input type="checkbox" id="setting-hide-name">
                     <label for="setting-hide-name">Nascondi nome utente</label>
@@ -131,13 +140,13 @@
                     <label for="setting-hide-avatar">Nascondi icona Avatar</label>
                 </div>
                 <div class="input-group" style="margin-top: 15px;">
-                    <label>Nome Visualizzato (Soprannome)</label>
+                    <label for="setting-custom-name">Nome visualizzato (soprannome)</label>
                     <input type="text" id="setting-custom-name" placeholder="Es. Batman">
                 </div>
                 <button data-action="salvaPreferenze">Salva Preferenze</button>
             </div>
             <div class="card">
-                <h3>Cambia Password</h3>
+                <h3><span class="section-icon" aria-hidden="true">◆</span> Sicurezza account</h3>
                 <div class="input-group" style="margin-top: 15px;">
                     <input type="password" id="old-pwd" placeholder="Vecchia Password">
                 </div>
@@ -147,8 +156,8 @@
                 <button data-action="password">Aggiorna Password</button>
             </div>
 
-            <button class="icon-btn-small" data-action="ripristinaMessaggi">Mostra i messaggi nascosti su questo dispositivo</button>
-            <button class="btn-danger" data-action="logout" style="margin-top: 30px;">🚪 Logout</button>
+            <div class="settings-secondary"><button class="icon-btn-small" data-action="ripristinaMessaggi">Mostra i messaggi nascosti su questo dispositivo</button></div>
+            <button class="btn-danger logout-button" data-action="logout">Esci dall’account</button>
         </main>
     </div>
 
@@ -166,18 +175,18 @@
 
     <nav id="bottom-nav" class="bottom-nav hidden">
         <div class="nav-item active" data-screen="dashboard-screen" role="button" tabindex="0">
-            <span class="nav-icon">🏠</span>
+            <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z"/></svg></span>
             <span>Home</span>
         </div>
         <div class="nav-item" data-screen="messages-screen" role="button" tabindex="0">
             <div style="position: relative;">
-                <span class="nav-icon">💬</span>
+                <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 9 9 0 0 1-4-.9l-5 2 1.8-5a9 9 0 0 1-1-4.2A8.5 8.5 0 0 1 12.3 3 8.5 8.5 0 0 1 21 11.5Z"/></svg></span>
                 <span id="msg-badge" class="badge hidden">0</span>
             </div>
             <span>Messaggi</span>
         </div>
         <div class="nav-item" data-screen="settings-screen" role="button" tabindex="0">
-            <span class="nav-icon">⚙️</span>
+            <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.05.05-2.83 2.83-.05-.05A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 1.6V21h-4v-.08A1.7 1.7 0 0 0 9 19.4a1.7 1.7 0 0 0-1.88.34l-.05.05-2.83-2.83.05-.05A1.7 1.7 0 0 0 4.6 15 1.7 1.7 0 0 0 3 14H3v-4h.08A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.34-1.88l-.05-.05 2.83-2.83.05.05A1.7 1.7 0 0 0 9 4.6 1.7 1.7 0 0 0 10 3h4a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.88-.34l.05-.05 2.83 2.83-.05.05A1.7 1.7 0 0 0 19.4 9 1.7 1.7 0 0 0 21 10h.08v4H21a1.7 1.7 0 0 0-1.6 1Z"/></svg></span>
             <span>Impostazioni</span>
         </div>
     </nav>
